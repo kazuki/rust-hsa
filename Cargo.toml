@@ -1,0 +1,9 @@
+[package]
+name = "hsa"
+version = "0.1.0"
+authors = ["Kazuki Oikawa <k@oikw.org>"]
+
+[dependencies]
+libc = "*"
+num = "*"
+enum_primitive = "*"
