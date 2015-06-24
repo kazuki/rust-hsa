@@ -68,3 +68,21 @@ impl Drop for Program {
         }
     }
 }
+
+impl Agent {
+    pub fn create_program(&self, options: &str) -> Result<Program, ErrorType> {
+        Program::new(try!(self.machine_model()),
+                     try!(self.profile()),
+                     DefaultFloatRoundingMode::Default, options)
+    }
+
+    pub fn create_and_finalize_program(&self, modules: &Vec<Vec<u8>>,
+                                       create_options: &str,
+                                       finalize_options: &str) -> Result<CodeObject, ErrorType> {
+        let mut prog = try!(self.create_program(&create_options));
+        for module in modules.iter() {
+            try!(prog.add_module(&module));
+        }
+        prog.finalize(try!(self.isa()), 0, &finalize_options, CodeObjectType::Program)
+    }
+}

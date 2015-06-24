@@ -10,8 +10,7 @@ pub struct Signal {
 }
 
 impl Signal {
-    pub fn new(initial_value: SignalValue, num_consumers: u32,
-               consumers: &Vec<&Agent>) -> Result<Signal, ErrorType> {
+    pub fn new(initial_value: SignalValue, consumers: &Vec<&Agent>) -> Result<Signal, ErrorType> {
 
         let mut cloned_consumers: Vec<Agent> = Vec::new();
         for agent in consumers.iter() {
@@ -24,7 +23,7 @@ impl Signal {
 
         let handle: SignalHandle = unsafe { mem::zeroed() };
         to_result(unsafe {
-            hsa_signal_create(initial_value, num_consumers,
+            hsa_signal_create(initial_value, cloned_consumers.len() as u32,
                               consumers_ptr, &handle)
         }, Signal {
             handle: handle

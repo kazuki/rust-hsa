@@ -14,35 +14,23 @@ struct VectorCopyArgs {
 fn test_vector_copy() {
     hsa::init().unwrap();
 
-    let agent = _get_first_agent(hsa::DeviceType::GPU).unwrap();
+    let agent = hsa::Agent::from_device_type(hsa::DeviceType::GPU).unwrap();
 
     let queue_size = agent.queue_max_size().unwrap();
     let mut queue = hsa::Queue::create(&agent, queue_size, hsa::QueueType::Single).unwrap();
 
-    let mut program = hsa::Program::new(hsa::MachineModel::Large,
-                                        hsa::Profile::Full,
-                                        hsa::DefaultFloatRoundingMode::Default, "").unwrap();
-
     let mut brig_buf: Vec<u8> = Vec::new();
     std::fs::File::open("tests/vector_copy.brig").unwrap()
         .read_to_end(&mut brig_buf).unwrap();
-    program.add_module(&brig_buf).unwrap();
 
-    let code_object = program.finalize(agent.isa().unwrap(), 0, "",
-                                       hsa::CodeObjectType::Program).unwrap();
+    let code_object = agent.create_and_finalize_program(&vec![brig_buf], "", "").unwrap();
+    let executable = hsa::Executable::new_and_freeze(&agent, &vec![code_object], "", "", "").unwrap();
 
-    let mut executable = hsa::Executable::new(hsa::Profile::Full,
-                                              hsa::ExecutableState::Unfrozen,
-                                              "").unwrap();
-    executable.load_code_object(&agent, &code_object, "").unwrap();
-    executable.freeze("").unwrap();
     let symbol = executable.get_symbol("", "&__vector_copy_kernel", &agent, 0).unwrap();
     let kernel_object = symbol.kernel_object().unwrap();
     let kernarg_segment_size = symbol.kernel_kernarg_segment_size().unwrap();
     let group_segment_size = symbol.kernel_group_segment_size().unwrap();
     let private_segment_size = symbol.kernel_private_segment_size().unwrap();
-
-    let signal = hsa::Signal::new(1, 0, &vec![]).unwrap();
 
     let vec_size = 1024 * 1024;
     let mut in_vec: Vec<u32> = Vec::with_capacity(vec_size);
@@ -76,6 +64,7 @@ fn test_vector_copy() {
                        std::mem::size_of::<VectorCopyArgs>());
     }
 
+    let signal = hsa::Signal::new(1, &vec![]).unwrap();
     let packet = hsa::KernelDispatchPacket::new(
         &hsa::PacketHeader {
             header_type: hsa::PacketType::KernelDispatch,
@@ -103,23 +92,4 @@ fn test_vector_copy() {
     hsa::shutdown().unwrap();
 
     assert!(valid);
-}
-
-fn _get_first_agent(device_type: hsa::DeviceType) -> Result<hsa::Agent, hsa::ErrorType> {
-    match hsa::Agent::list() {
-        Ok(mut agents) => {
-            for i in 0..agents.len() {
-                match agents[i].device() {
-                    Ok(dtype) => {
-                        if dtype == device_type {
-                            return Ok(agents.remove(i))
-                        }
-                    },
-                    Err(e) => return Err(e)
-                }
-            }
-        },
-        Err(e) => return Err(e)
-    }
-    Err(hsa::ErrorType::InvalidAgent)
 }

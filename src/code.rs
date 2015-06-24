@@ -29,6 +29,17 @@ impl Executable {
         }
     }
 
+    pub fn new_and_freeze(agent: &Agent, codes: &Vec<CodeObject>, new_options: &str,
+                          load_options: &str, freeze_options: &str) -> Result<Executable, ErrorType> {
+        let mut executable = try!(Executable::new(try!(agent.profile()),
+                                                  ExecutableState::Unfrozen, &new_options));
+        for code in codes.iter() {
+            try!(executable.load_code_object(&agent, &code, &load_options));
+        }
+        try!(executable.freeze(&freeze_options));
+        Ok(executable)
+    }
+
     pub fn load_code_object(&mut self, agent: &Agent, code_object: &CodeObject,
                             options: &str) -> Result<(), ErrorType> {
         match CString::new(options) {

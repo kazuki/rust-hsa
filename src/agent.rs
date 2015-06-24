@@ -13,6 +13,16 @@ impl Agent {
         }, v)
     }
 
+    pub fn from_device_type(device_type: DeviceType) -> Result<Agent, ErrorType> {
+        let mut agents = try!(Agent::list());
+        for i in 0..agents.len() {
+            if try!(agents[i].device()) == device_type {
+                return Ok(agents.remove(i))
+            }
+        }
+        Err(ErrorType::InvalidAgent)
+    }
+
     pub fn name(&self) -> Result<String, ErrorType> {
         self.get_info_str(AgentInfo::Name, 64)
     }
