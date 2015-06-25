@@ -7,3 +7,4 @@ authors = ["Kazuki Oikawa <k@oikw.org>"]
 libc = "*"
 num = "*"
 enum_primitive = "*"
+time = "*"

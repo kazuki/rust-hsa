@@ -14,20 +14,15 @@ HSA (Heterogeneous System Architecture) bindings for Rust
 * Linux Distribution: Gentoo Linux (amd64)
 * HSA Driver: amdkfd v1.4 (linux 4.0.0+)
 
-## Test outputs
+## included tools
+
+### hsainfo
+
+Dump HSA information
 
 ```
-$ cargo test -- --nocapture
-   Compiling hsa v0.1.0 (file:///home/kazuki/projects/rust-hsa)
-     Running target/debug/hsa-53dc2c312dc2da42
-
-running 0 tests
-
-test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured
-
-     Running target/debug/test-406bceff3464cc09
-
-running 2 tests
+$ cargo run --release --bin hsainfo
+     Running `target/release/hsainfo`
 HSA SystemInfo
 * version: 1.0
 * timestamp: 2141.220068967 [s] (freq: 1000 [MHz])
@@ -118,15 +113,18 @@ AgentInfo
 |  * runtime alloc allowed: true
 |  * runtime alloc granule: 4096
 |  * runtime alloc alignment: 4096
+```
 
-test test_info ... ok
-test test_vector_copy ... ok
+### hsa-memcpy
 
-test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured
+memcpy benchmark tool
 
-   Doc-tests hsa
-
-running 0 tests
-
-test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured
+```
+$ cargo run --release --bin hsa-memcpy
+     Running `target/release/hsa-memcpy`
+memcpy 4 MB => 4653.560998606307 MB/s
+memcpy 64 MB => 5898.999940642528 MB/s
+memcpy 256 MB => 5791.381699230143 MB/s
+memcpy 1024 MB => 6910.0210435532 MB/s
+memcpy 4096 MB => 6934.495177298106 MB/s
 ```
