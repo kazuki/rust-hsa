@@ -26,8 +26,8 @@ impl Queue {
     pub fn enqueue(&mut self, packet: &KernelDispatchPacket) {
         unsafe {
             let handle = &*(self.handle);
-            let index = hsa_queue_load_write_index_relaxed(self.handle);
-            let queue_index = (index & (handle.size as u64)) as usize;
+            let index = hsa_queue_add_write_index_relaxed(self.handle, 1);
+            let queue_index = (index % (handle.size as u64)) as usize;
             let queue_ptr = (handle.base_address as *mut u8).offset((queue_index * PACKET_SIZE) as isize);
             let queue_body_ptr = queue_ptr.offset(4);
             let packet_ptr = packet as *const _ as *const u8;
