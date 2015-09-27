@@ -4,15 +4,16 @@ HSA (Heterogeneous System Architecture) bindings for Rust
 ## Requirements
 
 * AMD Kaveri APUs
-* [HSA-Drivers-Linux-AMD](https://github.com/HSAFoundation/HSA-Drivers-Linux-AMD)
 * [HSA-Runtime-AMD](https://github.com/HSAFoundation/HSA-Runtime-AMD)
+* [HSA-Drivers-Linux-AMD](https://github.com/HSAFoundation/HSA-Drivers-Linux-AMD) (for Ubuntu user. Doesn't need If your system's kernel version 4.2.0+)
 
 ## Tested Environment
 
 * CPU: AMD A10-7850K (Kaveri)
 * M/B: [MSI A88XI AC](http://www.msi.com/product/mb/A88XI_AC.html) (BIOS: v1.6)
 * Linux Distribution: Gentoo Linux (amd64)
-* HSA Driver: amdkfd v1.4 (linux 4.0.0+)
+* Linux Kernel: 4.2.0, 4.2.1
+* HSA-Runtime-AMD Version: release-v1.0f.2 (release-v1.0f.3 doesn't work)
 
 ## included tools
 
