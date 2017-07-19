@@ -1,176 +1,281 @@
-use std::mem;
-use libc::{c_int, c_void};
+use std::os::raw::c_void;
 
-use super::{ErrorType, to_error_type, to_result};
+use super::{check, get_fixed_str, get_info, iter_callback_helper, ErrorStatus, FromPrimitive};
 use native::*;
+use system::get_extension_name;
 
 impl Agent {
-    pub fn list() -> Result<Vec<Agent>, ErrorType> {
+    pub fn list() -> Result<Vec<Agent>, ErrorStatus> {
         let mut v: Vec<Agent> = Vec::new();
         let p: *mut c_void = &mut v as *mut _ as *mut c_void;
-        to_result(unsafe {
-            hsa_iterate_agents(agent_list_callback, p)
-        }, v)
+        check(unsafe { hsa_iterate_agents(agent_list_callback, p) }, v)
     }
 
-    pub fn from_device_type(device_type: DeviceType) -> Result<Agent, ErrorType> {
-        let mut agents = try!(Agent::list());
-        for i in 0..agents.len() {
-            if try!(agents[i].device()) == device_type {
-                return Ok(agents.remove(i))
-            }
-        }
-        Err(ErrorType::InvalidAgent)
+    pub fn from_device_type(device_type: DeviceType) -> Result<Vec<Agent>, ErrorStatus> {
+        let mut v = try!(Agent::list());
+        v.retain(|&agent| match agent.device() {
+            Ok(t) => t == device_type,
+            Err(_) => false,
+        });
+        Ok(v)
     }
 
-    pub fn name(&self) -> Result<String, ErrorType> {
-        self.get_info_str(AgentInfo::Name, 64)
+    pub fn name(&self) -> Result<String, ErrorStatus> {
+        get_fixed_str(|x| self.get_info(AgentInfo::Name, x), 64)
     }
 
-    pub fn vendor(&self) -> Result<String, ErrorType> {
-        self.get_info_str(AgentInfo::VendorName, 64)
+    pub fn vendor(&self) -> Result<String, ErrorStatus> {
+        get_fixed_str(|x| self.get_info(AgentInfo::VendorName, x), 64)
     }
 
-    pub fn feature(&self) -> Result<AgentFeature, ErrorType> {
-        self.get_info_raw(AgentInfo::Feature)
+    pub fn feature(&self) -> Result<AgentFeature, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::Feature, x))
     }
 
-    pub fn machine_model(&self) -> Result<MachineModel, ErrorType> {
-        self.get_info_raw(AgentInfo::MachineModel)
+    #[deprecated]
+    pub fn machine_model(&self) -> Result<MachineModel, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::MachineModel, x))
     }
 
-    pub fn profile(&self) -> Result<Profile, ErrorType> {
-        self.get_info_raw(AgentInfo::Profile)
+    #[deprecated]
+    pub fn profile(&self) -> Result<Profile, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::Profile, x))
     }
 
-    pub fn default_float_rouding_mode(&self) -> Result<DefaultFloatRoundingMode, ErrorType> {
-        self.get_info_raw(AgentInfo::DefaultFloatRoundingMode)
+    #[deprecated]
+    pub fn default_float_rounding_mode(&self) -> Result<DefaultFloatRoundingMode, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::DefaultFloatRoundingMode, x))
     }
 
-    pub fn base_profile_default_float_rouding_mode(&self) -> Result<DefaultFloatRoundingMode, ErrorType> {
-        self.get_info_raw(AgentInfo::BaseProfileDefaultFloatRoundingModes)
+    #[deprecated]
+    pub fn base_profile_default_float_rounding_mode(
+        &self,
+    ) -> Result<DefaultFloatRoundingMode, ErrorStatus> {
+        get_info(|x| {
+            self.get_info(AgentInfo::BaseProfileDefaultFloatRoundingModes, x)
+        })
     }
 
-    pub fn fast_f16_operation(&self) -> Result<bool, ErrorType> {
-        let r: Result<c_int, ErrorType> = self.get_info_raw(AgentInfo::FastF16Operation);
-        match r {
-            Ok(i) => {
-                if i == 0 {
-                    Ok(false)
-                } else {
-                    Ok(true)
-                }
-            },
-            Err(e) => Err(e),
-        }
+    #[deprecated]
+    pub fn fast_f16_operation(&self) -> Result<bool, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::FastF16Operation, x))
     }
 
-    pub fn wavefront_size(&self) -> Result<u32, ErrorType> {
-        self.get_info_raw(AgentInfo::WavefrontSize)
+    #[deprecated]
+    pub fn wavefront_size(&self) -> Result<u32, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::WavefrontSize, x))
     }
 
-    pub fn workgroup_max_dim(&self) -> Result<[u16;3], ErrorType> {
-        self.get_info_raw(AgentInfo::WorkgroupMaxDim)
+    #[deprecated]
+    pub fn workgroup_max_dim(&self) -> Result<[u16; 3], ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::WorkgroupMaxDim, x))
     }
 
-    pub fn workgroup_max_size(&self) -> Result<u32, ErrorType> {
-        self.get_info_raw(AgentInfo::WorkgroupMaxSize)
+    #[deprecated]
+    pub fn workgroup_max_size(&self) -> Result<u32, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::WorkgroupMaxSize, x))
     }
 
-    pub fn grid_max_dim(&self) -> Result<Dim3, ErrorType> {
-        self.get_info_raw(AgentInfo::GridMaxDim)
+    #[deprecated]
+    pub fn grid_max_dim(&self) -> Result<Dim3, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::GridMaxDim, x))
     }
 
-    pub fn grid_max_size(&self) -> Result<u32, ErrorType> {
-        self.get_info_raw(AgentInfo::GridMaxSize)
+    #[deprecated]
+    pub fn grid_max_size(&self) -> Result<u32, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::GridMaxSize, x))
     }
 
-    pub fn fbarrier_max_size(&self) -> Result<u32, ErrorType> {
-        self.get_info_raw(AgentInfo::FbarrierMaxSize)
+    #[deprecated]
+    pub fn fbarrier_max_size(&self) -> Result<u32, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::FbarrierMaxSize, x))
     }
 
-    pub fn queues_max(&self) -> Result<u32, ErrorType> {
-        self.get_info_raw(AgentInfo::QueuesMax)
+    #[deprecated]
+    pub fn queues_max(&self) -> Result<u32, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::QueuesMax, x))
     }
 
-    pub fn queue_min_size(&self) -> Result<u32, ErrorType> {
-        self.get_info_raw(AgentInfo::QueueMinSize)
+    pub fn queue_min_size(&self) -> Result<u32, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::QueueMinSize, x))
     }
 
-    pub fn queue_max_size(&self) -> Result<u32, ErrorType> {
-        self.get_info_raw(AgentInfo::QueueMaxSize)
+    pub fn queue_max_size(&self) -> Result<u32, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::QueueMaxSize, x))
     }
 
-    pub fn queue_type(&self) -> Result<QueueType, ErrorType> {
-        self.get_info_raw(AgentInfo::QueueType)
+    pub fn queue_type(&self) -> Result<QueueType, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::QueueType, x))
     }
 
-    pub fn node(&self) -> Result<u32, ErrorType> {
-        self.get_info_raw(AgentInfo::Node)
+    #[deprecated]
+    pub fn node(&self) -> Result<u32, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::Node, x))
     }
 
-    pub fn device(&self) -> Result<DeviceType, ErrorType> {
-        self.get_info_raw(AgentInfo::Device)
+    pub fn device(&self) -> Result<DeviceType, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::Device, x))
     }
 
-    pub fn isa(&self) -> Result<ISA, ErrorType> {
-        self.get_info_raw(AgentInfo::ISA)
+    #[deprecated]
+    pub fn cache_size(&self) -> Result<[u32; 4], ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::CacheSize, x))
     }
 
-    pub fn extensions(&self) -> Result<[u8;128], ErrorType> {
-        self.get_info_raw(AgentInfo::Extensions)
+    #[deprecated]
+    pub fn isa(&self) -> Result<ISA, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::ISA, x))
     }
 
-    pub fn major_version(&self) -> Result<u16, ErrorType> {
-        self.get_info_raw(AgentInfo::VersionMajor)
-    }
-
-    pub fn minor_version(&self) -> Result<u16, ErrorType> {
-        self.get_info_raw(AgentInfo::VersionMinor)
-    }
-
-    pub fn assign_memory(&self, ptr: *mut c_void,
-                         access: AccessPermission) -> Result<(), ErrorType> {
-        to_result(unsafe {
-            hsa_memory_assign_agent(ptr, self.clone(), access)
-        }, ())
-    }
-
-    fn get_info_raw<T>(&self, attr: AgentInfo) -> Result<T, ErrorType> {
-        let mut x: T = unsafe { mem::zeroed() };
-        let p: *mut c_void = &mut x as *mut _ as *mut c_void;
-        unsafe {
-            match hsa_agent_get_info(self.clone(), attr, p) {
-                0 => Ok(x),
-                e => Err(to_error_type(e))
-            }
-        }
-    }
-
-    fn get_info_str(&self, attribute: AgentInfo, max_size: usize) -> Result<String, ErrorType> {
-        let mut buf: Vec<u8> = Vec::with_capacity(max_size);
-        let p: *mut c_void = buf.as_mut_ptr() as *mut _ as *mut c_void;
-        unsafe {
-            match hsa_agent_get_info(self.clone(), attribute, p) {
-                0 => {
-                    for i in 0..buf.capacity() {
-                        if *buf.get_unchecked(i) == 0 {
-                            buf.set_len(i);
-                            break;
-                        }
+    pub fn extensions(&self) -> Result<Vec<Extension>, ErrorStatus> {
+        let ret: Result<[u8; 128], ErrorStatus> =
+            get_info(|x| self.get_info(AgentInfo::Extensions, x));
+        ret.map(|x| {
+            let mut v = Vec::new();
+            for (i, b) in x.iter().enumerate().filter(|&(_, &b)| b != 0) {
+                for j in (0..8).filter(|&j| (*b >> j) & 1 != 0) {
+                    if let Some(x) = Extension::from_u16((i * 8 + j) as u16) {
+                        v.push(x)
                     }
-                    Ok(String::from_utf8(buf).unwrap())
-                },
-                e => Err(to_error_type(e)),
+                }
             }
-        }
+            v
+        })
+    }
+
+    pub fn extension_names(&self) -> Result<Vec<String>, ErrorStatus> {
+        self.extensions().map(|e| {
+            e.iter()
+                .filter_map(|id| get_extension_name(*id).ok())
+                .collect()
+        })
+    }
+
+    pub fn version_major(&self) -> Result<u16, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::VersionMajor, x))
+    }
+
+    pub fn version_minor(&self) -> Result<u16, ErrorStatus> {
+        get_info(|x| self.get_info(AgentInfo::VersionMinor, x))
+    }
+
+    fn get_info(&self, attr: AgentInfo, v: *mut c_void) -> HSAStatus {
+        unsafe { hsa_agent_get_info(*self, attr, v) }
+    }
+
+    pub fn caches(&self) -> Result<Vec<Cache>, ErrorStatus> {
+        let mut v: Vec<Cache> = Vec::new();
+        let p: *mut c_void = &mut v as *mut _ as *mut c_void;
+        check(
+            unsafe { hsa_agent_iterate_caches(*self, cache_list_callback, p) },
+            v,
+        )
+    }
+
+    #[deprecated]
+    pub fn extension_supported(
+        &self,
+        extension: Extension,
+        version_major: u16,
+        version_minor: u16,
+    ) -> Result<bool, ErrorStatus> {
+        let mut result = false;
+        check(
+            unsafe {
+                hsa_agent_extension_supported(
+                    extension,
+                    *self,
+                    version_major,
+                    version_minor,
+                    &mut result,
+                )
+            },
+            result,
+        )
+    }
+
+    pub fn major_extension_supported(
+        &self,
+        extension: Extension,
+        version_major: u16,
+    ) -> Result<(u16, bool), ErrorStatus> {
+        let mut result = false;
+        let mut version_minor = 0u16;
+        check(
+            unsafe {
+                hsa_agent_major_extension_supported(
+                    extension,
+                    *self,
+                    version_major,
+                    &mut version_minor,
+                    &mut result,
+                )
+            },
+            (version_minor, result),
+        )
+    }
+
+    pub fn regions(&self) -> Result<Vec<Region>, ErrorStatus> {
+        let mut v: Vec<Region> = Vec::new();
+        let p: *mut c_void = &mut v as *mut _ as *mut c_void;
+        check(
+            unsafe { hsa_agent_iterate_regions(*self, region_list_callback, p) },
+            v,
+        )
+    }
+
+    pub fn fine_grained_global_regions(&self) -> Result<Vec<Region>, ErrorStatus> {
+        let mut regions = try!(self.regions());
+        regions.retain(|&r| {
+            match r.segment() {
+                Ok(RegionSegment::Global) => (),
+                _ => return false,
+            }
+            match r.global_flags() {
+                Ok(x) => x.contains(&RegionGlobalFlag::FineGrained),
+                _ => false,
+            }
+        });
+        Ok(regions)
+    }
+
+    pub fn kernarg_global_regions(&self) -> Result<Vec<Region>, ErrorStatus> {
+        let mut regions = try!(self.regions());
+        regions.retain(|&r| {
+            match r.segment() {
+                Ok(RegionSegment::Global) => (),
+                _ => return false,
+            }
+            match r.global_flags() {
+                Ok(x) => x.contains(&RegionGlobalFlag::KernArg),
+                _ => false,
+            }
+        });
+        Ok(regions)
+    }
+
+    pub fn isas(&self) -> Result<Vec<ISA>, ErrorStatus> {
+        let mut v: Vec<ISA> = Vec::new();
+        let p: *mut c_void = &mut v as *mut _ as *mut c_void;
+        check(
+            unsafe { hsa_agent_iterate_isas(*self, isa_list_callback, p) },
+            v,
+        )
     }
 }
 
-extern "C" fn agent_list_callback(agent: Agent, data: *mut c_void) -> c_int {
-    let v: *mut Vec<Agent> = data as *mut Vec<Agent>;
-    unsafe {
-        (*v).push(agent);
-    }
-    0
+extern "C" fn agent_list_callback(agent: Agent, data: *mut c_void) -> HSAStatus {
+    iter_callback_helper(agent, data)
+}
+
+extern "C" fn cache_list_callback(cache: Cache, data: *mut c_void) -> HSAStatus {
+    iter_callback_helper(cache, data)
+}
+
+extern "C" fn region_list_callback(region: Region, data: *mut c_void) -> HSAStatus {
+    iter_callback_helper(region, data)
+}
+
+extern "C" fn isa_list_callback(isa: ISA, data: *mut c_void) -> HSAStatus {
+    iter_callback_helper(isa, data)
 }
