@@ -1,7 +1,18 @@
 [package]
 name = "hsa"
+description = "Heterogeneous System Architecture(HSA) bindings for Rust"
+repository = "https://github.com/kazuki/rust-hsa"
+readme = "README.md"
+keywords = ["hsa", "binding", "gpgpu", "gpu"]
+categories = ["external-ffi-bindings"]
+license = "MIT"
 version = "0.1.0"
 authors = ["Kazuki Oikawa <k@oikw.org>"]
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+    "src/bin/*.brig",
+]
 
 [dependencies]
 enum_primitive = "^0.1.1"
