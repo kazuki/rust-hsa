@@ -12,10 +12,19 @@ Heterogeneous System Architecture(HSA) v1.1 bindings for Rust
 
 ## Tested Environment
 
-* CPU: AMD Ryzen 7 1800X
-* M/B: [ASRock AB350M Pro](http://www.asrock.com/mb/AMD/AB350M%20Pro4/index.asp)
-* Linux Distribution: Gentoo Linux (amd64)
-* ROCm: v1.6.0
+* 2017/12/25
+
+    * CPU: AMD Threadripper 1950X
+    * M/B: [ASRock X399 Taichi](http://www.asrock.com/MB/AMD/X399%20Taichi/index.asp)
+    * Linux: Gentoo Linux (amd64)
+    * ROCm: v1.7.0
+
+* 2017/07/19
+
+    * CPU: AMD Ryzen 7 1800X
+    * M/B: [ASRock AB350M Pro](http://www.asrock.com/mb/AMD/AB350M%20Pro4/index.asp)
+    * Linux Distribution: Gentoo Linux (amd64)
+    * ROCm: v1.6.0
 
 ## included tools
 
@@ -27,55 +36,103 @@ Dump HSA information
 $ cargo run --bin hsainfo
 [HSA SystemInfo]
 * version: 1.1
-* timestamp: 9564.460777427 [s] (freq: 1000 [MHz])
+* timestamp: 213889.619526029 [s] (freq: 1000 [MHz])
 * signal-max-wait: 18446744073709551615
 * endianness: Little
 * machine_model: Large
 * extensions: ["HSA_EXTENSION_FINALIZER"]
 
 [Agent (CPU)]
-  * name: AMD Ryzen 7 1800X Eight-Core Processor
+  * name: AMD Ryzen Threadripper 1950X 16-Core Processor
   * vendor: CPU
   * feature: AgentDispatch
-  * machine_model/profile: Large / Full
-  * float_rounding: Near / Near
-  * fast_f16_operation: false
-  * wavefront size: 0
-  * workgroup max dim: [0, 0, 0]
-  * workgroup max size: 0
-  * grid max dim: Dim3 { x: 0, y: 0, z: 0 }
-  * grid max size: 0
-  * fbarrier max size: 0
-  * queues max: 0
+  * machine_model/profile: Large / Full (deprecated)
+  * float_rounding: Near / Near (deprecated)
+  * fast_f16_operation: false (deprecated)
+  * wavefront size: 0 (deprecated)
+  * workgroup max dim: [0, 0, 0] (deprecated)
+  * workgroup max size: 0 (deprecated)
+  * grid max dim: Dim3 { x: 0, y: 0, z: 0 } (deprecated)
+  * grid max size: 0 (deprecated)
+  * fbarrier max size: 0 (deprecated)
+  * queues max: 0 (deprecated)
   * queue min/max/type: 0 / 0 / Multi
   * version: 1.1
+  [Cache]
+    * AMD Ryzen Threadripper 1950X 16-Core Processor L1(L1 32768KiB) x 16
   [Region (Global)]
-    * size: 33751019520
+    * size: 33691586560
     * global flags: {KernArg, FineGrained}
-    * alloc max_size/granule/align: 33751019520 4096 4096
+    * alloc max_size/granule/align: 33691586560 4096 4096
   [Region (Global)]
-    * size: 33751019520
+    * size: 33800904704
+    * global flags: {KernArg, FineGrained}
+    * alloc max_size/granule/align: 33800904704 4096 4096
+  [Region (Global)]
+    * size: 33691586560
     * global flags: {CoarseGrained}
-    * alloc max_size/granule/align: 33751019520 4096 4096
+    * alloc max_size/granule/align: 33691586560 4096 4096
+  [Region (Global)]
+    * size: 33800904704
+    * global flags: {CoarseGrained}
+    * alloc max_size/granule/align: 33800904704 4096 4096
+
+[Agent (CPU)]
+  * name: AMD Ryzen Threadripper 1950X 16-Core Processor
+  * vendor: CPU
+  * feature: AgentDispatch
+  * machine_model/profile: Large / Full (deprecated)
+  * float_rounding: Near / Near (deprecated)
+  * fast_f16_operation: false (deprecated)
+  * wavefront size: 0 (deprecated)
+  * workgroup max dim: [0, 0, 0] (deprecated)
+  * workgroup max size: 0 (deprecated)
+  * grid max dim: Dim3 { x: 0, y: 0, z: 0 } (deprecated)
+  * grid max size: 0 (deprecated)
+  * fbarrier max size: 0 (deprecated)
+  * queues max: 0 (deprecated)
+  * queue min/max/type: 0 / 0 / Multi
+  * version: 1.1
+  [Cache]
+    * AMD Ryzen Threadripper 1950X 16-Core Processor L1(L1 32768KiB) x 8
+  [Region (Global)]
+    * size: 33691586560
+    * global flags: {KernArg, FineGrained}
+    * alloc max_size/granule/align: 33691586560 4096 4096
+  [Region (Global)]
+    * size: 33800904704
+    * global flags: {KernArg, FineGrained}
+    * alloc max_size/granule/align: 33800904704 4096 4096
+  [Region (Global)]
+    * size: 33691586560
+    * global flags: {CoarseGrained}
+    * alloc max_size/granule/align: 33691586560 4096 4096
+  [Region (Global)]
+    * size: 33800904704
+    * global flags: {CoarseGrained}
+    * alloc max_size/granule/align: 33800904704 4096 4096
 
 [Agent (GPU)]
   * name: gfx803
   * vendor: AMD
   * feature: KernelDispatch
-  * machine_model/profile: Large / Base
-  * float_rounding: Near / Near
-  * fast_f16_operation: false
-  * wavefront size: 64
-  * workgroup max dim: [1024, 1024, 1024]
-  * workgroup max size: 1024
-  * grid max dim: Dim3 { x: 4294967295, y: 4294967295, z: 4294967295 }
-  * grid max size: 4294967295
-  * fbarrier max size: 32
-  * queues max: 128
+  * machine_model/profile: Large / Base (deprecated)
+  * float_rounding: Near / Near (deprecated)
+  * fast_f16_operation: false (deprecated)
+  * wavefront size: 64 (deprecated)
+  * workgroup max dim: [1024, 1024, 1024] (deprecated)
+  * workgroup max size: 1024 (deprecated)
+  * grid max dim: Dim3 { x: 4294967295, y: 4294967295, z: 4294967295 } (deprecated)
+  * grid max size: 4294967295 (deprecated)
+  * fbarrier max size: 32 (deprecated)
+  * queues max: 128 (deprecated)
   * queue min/max/type: 4096 / 131072 / Multi
   * version: 1.1
+  [Cache]
+    * gfx803 L1(L1 16KiB) x 64
+    * gfx803 L1(L1 4KiB) x 16
   [ISA]
-    * name: AMD:AMDGPU:8:0:3
+    * name: AMD:AMDGPU:8:0:3�
     * machine_models/profiles: {Large} / {Base}
     * float rounding modes: {Near} / {Near}
     * fast f16 ops: true
@@ -93,13 +150,21 @@ $ cargo run --bin hsainfo
   [Region (Group)]
     * size: 65536
   [Region (Global)]
-    * size: 33751019520
+    * size: 33691586560
     * global flags: {KernArg, FineGrained}
-    * alloc max_size/granule/align: 33751019520 4096 4096
+    * alloc max_size/granule/align: 33691586560 4096 4096
   [Region (Global)]
-    * size: 33751019520
+    * size: 33800904704
+    * global flags: {KernArg, FineGrained}
+    * alloc max_size/granule/align: 33800904704 4096 4096
+  [Region (Global)]
+    * size: 33691586560
     * global flags: {CoarseGrained}
-    * alloc max_size/granule/align: 33751019520 4096 4096
+    * alloc max_size/granule/align: 33691586560 4096 4096
+  [Region (Global)]
+    * size: 33800904704
+    * global flags: {CoarseGrained}
+    * alloc max_size/granule/align: 33800904704 4096 4096
 ```
 
 ### vector-copy
