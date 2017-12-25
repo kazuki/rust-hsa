@@ -1,5 +1,7 @@
 extern crate hsa;
 
+use std::collections::HashMap;
+
 fn main() {
     hsa::init().unwrap();
 
@@ -30,16 +32,16 @@ fn main() {
   * name: {}
   * vendor: {}
   * feature: {:?}
-  * machine_model/profile: {:?} / {:?}
-  * float_rounding: {:?} / {:?}
-  * fast_f16_operation: {}
-  * wavefront size: {}
-  * workgroup max dim: {:?}
-  * workgroup max size: {}
-  * grid max dim: {:?}
-  * grid max size: {}
-  * fbarrier max size: {}
-  * queues max: {}
+  * machine_model/profile: {:?} / {:?} (deprecated)
+  * float_rounding: {:?} / {:?} (deprecated)
+  * fast_f16_operation: {} (deprecated)
+  * wavefront size: {} (deprecated)
+  * workgroup max dim: {:?} (deprecated)
+  * workgroup max size: {} (deprecated)
+  * grid max dim: {:?} (deprecated)
+  * grid max size: {} (deprecated)
+  * fbarrier max size: {} (deprecated)
+  * queues max: {} (deprecated)
   * queue min/max/type: {} / {} / {:?}
   * version: {}.{}"#,
                  agent.device().unwrap(),
@@ -63,6 +65,17 @@ fn main() {
                  agent.queue_type().unwrap(),
                  agent.version_major().unwrap(), agent.version_minor().unwrap(),
                  );
+
+        let mut cache_map: HashMap<(String, u8, u32), u32> = HashMap::new();
+        for cache in agent.caches().unwrap_or_default() {
+            let key = (cache.name().unwrap(), cache.level().unwrap(), cache.size().unwrap());
+            let counter = cache_map.entry(key).or_insert(0);
+            *counter += 1;
+        }
+        println!("  [Cache]");
+        for (key, counter) in cache_map.iter() {
+            println!("    * {}(L{} {}KiB) x {}", key.0, key.1, key.2, counter);
+        }
         for isa in agent.isas().unwrap_or_default() {
             println!(
                 r#"  [ISA]

@@ -828,6 +828,7 @@ pub enum PacketHeader {
     ScacquireFenceScope = 9,
     ScreleaseFenceScope = 11,
 }
+
 #[allow(non_upper_case_globals)]
 impl PacketHeader {
     pub const AcquireFenceScope: PacketHeader = PacketHeader::ScacquireFenceScope;
